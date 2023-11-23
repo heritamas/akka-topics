@@ -25,25 +25,23 @@ object Manager {
           replyTo: ActorRef[Worker.Response]): Worker.Parse =
         Worker.Parse(text, replyTo)
 
-      Behaviors.receiveMessage { message =>
-        message match {
-          case Delegate(texts) =>
-            texts.map { text =>
-              val worker: ActorRef[Worker.Command] =
-                context.spawn(Worker(), s"worker-$text")
-              context.ask(worker, auxCreateRequest(text)) {
-                case Success(_) =>
-                  Report(s"$text read by ${worker.path.name}")
-                case Failure(ex) =>
-                  Report(
-                    s"reading '$text' has failed with [${ex.getMessage()}")
-              }
+      Behaviors.receiveMessage {
+        case Delegate(texts) =>
+          texts.foreach { text =>
+            val worker: ActorRef[Worker.Command] =
+              context.spawn(Worker(), s"worker-$text")
+            context.ask(worker, Worker.Parse(text, _)) {
+              case Success(_) =>
+                Report(s"$text read by ${worker.path.name}")
+              case Failure(ex) =>
+                Report(
+                  s"reading '$text' has failed with [${ex.getMessage()}")
             }
-            Behaviors.same
-          case Report(outline) =>
-            context.log.info(outline)
-            Behaviors.same
-        }
+          }
+          Behaviors.same
+        case Report(outline) =>
+          context.log.info(outline)
+          Behaviors.same
       }
     }
 }
