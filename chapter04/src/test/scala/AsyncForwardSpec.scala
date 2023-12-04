@@ -31,8 +31,10 @@ class AsyncForwardSpec
     "intercept the messages" in {
 
       val probe = testKit.createTestProbe[String]
-      val behaviorUnderTest = Behaviors.receiveMessage[String] { _ =>
-        Behaviors.ignore
+      val behaviorUnderTest = Behaviors.receive[String] {
+        (context, message) =>
+          context.log.info("message received: {}", message)
+          Behaviors.ignore
       }
       val behaviorMonitored =
         Behaviors.monitor(probe.ref, behaviorUnderTest)

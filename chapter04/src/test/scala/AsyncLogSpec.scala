@@ -1,7 +1,10 @@
 package logging
 
-import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
-import akka.actor.testkit.typed.scaladsl.LoggingTestKit
+import akka.actor.testkit.typed.scaladsl.{
+  LogCapturing,
+  LoggingTestKit,
+  ScalaTestWithActorTestKit
+}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 import akka.actor.typed.scaladsl.Behaviors
@@ -12,7 +15,8 @@ import org.slf4j.event.Level
 class AsyncLogSpec
     extends ScalaTestWithActorTestKit
     with AnyWordSpecLike
-    with Matchers {
+    with Matchers
+    with LogCapturing {
 
   "a Simplified Manager" must {
 

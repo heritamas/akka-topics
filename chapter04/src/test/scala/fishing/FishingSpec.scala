@@ -31,17 +31,19 @@ class FishingSpec
 
       val ref = spawn(sender)
       probe.expectMessage(Receiver.Tock)
-      probe.fishForMessage(3.seconds) {
-        // we don't know that we will see exactly one tock
-        case Receiver.Tock =>
-          if (scala.util.Random.nextInt(4) == 0)
-            ref ! Sender.Cancel(timerKey)
-          FishingOutcomes.continueAndIgnore
-        // but we know that after we saw Cancelled we won't see any more
-        case Receiver.Cancelled => FishingOutcomes.complete
-        case message => // this could never happen if there's no warning at compilation time
-          FishingOutcomes.fail(s"unexpected message: $message")
-      }
+      probe
+        .fishForMessage(3.seconds) {
+          // we don't know that we will see exactly one tock
+          case Receiver.Tock =>
+            if (scala.util.Random.nextInt(4) == 0)
+              ref ! Sender.Cancel(timerKey)
+            FishingOutcomes.continue
+          // but we know that after we saw Cancelled we won't see any more
+          case Receiver.Cancelled => FishingOutcomes.complete
+          case message => // this could never happen if there's no warning at compilation time
+            FishingOutcomes.fail(s"unexpected message: $message")
+        }
+        .foreach(println)
       probe.expectNoMessage(interval + 100.millis.dilated)
     }
   }
